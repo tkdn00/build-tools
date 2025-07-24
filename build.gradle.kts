@@ -35,3 +35,30 @@ tasks.withType<KotlinCompile> {
 
 
 // TODO: your code starts here
+tasks.register<Exec>("npmInstall") {
+    val dir = project.projectDir
+    workingDir = File("${dir}/ui")
+    commandLine("npm i".split(" "))
+}
+
+tasks.register<Exec>("compileUi") {
+    val dir = project.projectDir
+    workingDir = File("${dir}/ui")
+    commandLine("npm", "run", "build")
+    dependsOn("npmInstall")
+}
+
+tasks.register<Copy>("copyUi"){
+    val dir = project.projectDir
+    from("./ui/dist/"){
+    include("index.html")
+    include("app.js")
+    include("css/**")
+    }
+    into("src/main/resources")
+    dependsOn("compileUi")
+}
+
+tasks.withType<org.springframework.boot.gradle.tasks.run.BootRun> {
+   dependsOn("copyUi")
+}
